@@ -5,6 +5,7 @@ import java.awt.*;
 //import java.awt.event.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
 import javax.sound.midi.*;
 
@@ -44,6 +45,12 @@ public class Main {
         JButton downtempobtn=new JButton("downtempo");
 //        downtempobtn.addActionListener(new downtempoactionlistner());
         buttonbox.add(downtempobtn);
+        JButton serializebtn=new JButton("serialize_it");
+        serializebtn.addActionListener(new serializeactionlistner());
+        buttonbox.add(serializebtn);
+        JButton deserializebtn=new JButton("deserialize_it");
+        deserializebtn.addActionListener(new deserializeactionlistner());
+        buttonbox.add(deserializebtn);
         Box Namebox=new Box(BoxLayout.Y_AXIS);
 
         for(int i=0;i<16;i++)
@@ -71,6 +78,72 @@ public class Main {
         frame.setVisible(true);
         setupMidi();
     }
+    public class serializeactionlistner implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser filesave=new JFileChooser();
+            filesave.showSaveDialog(frame);
+            savefile(filesave.getSelectedFile());
+        }
+    }
+    private  void savefile(File file){
+        boolean[] checkboxstate=new boolean[256];
+           for(int i=0;i<256;i++)
+           {
+               if(checkboxArrayList.get(i).isSelected())
+               {
+                   checkboxstate[i]=true;
+               }else{
+                   checkboxstate[i]=false;
+               }
+           }
+        try{
+            FileOutputStream fileOutputStream=new FileOutputStream(file);
+            ObjectOutputStream objectOutputStream=new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(checkboxstate);
+        }catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    public class deserializeactionlistner implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser fileload=new JFileChooser();
+            fileload.showOpenDialog(frame);
+            loadfile(fileload.getSelectedFile());
+        }
+    }
+
+    private void loadfile(File file)
+    {
+//        checkboxArrayList.clear();
+        boolean[] checkboxstate=null;
+        try{
+            FileInputStream fs=new FileInputStream(file);
+            ObjectInputStream objectInputStream=new ObjectInputStream(fs);
+            checkboxstate=(boolean[])objectInputStream.readObject();
+        }catch (IOException ex)
+        {
+            ex.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        for (int i=0;i<256;i++)
+        {
+            if(checkboxstate[i])
+            {
+                checkboxArrayList.get(i).setSelected(true);
+            }else{
+                checkboxArrayList.get(i).setSelected(false);
+            }
+        }
+        player.stop();
+    }
+
+
 
     public void  setupMidi()
     {
@@ -134,6 +207,7 @@ public class Main {
     public class startactionlistner implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e) {
+
             buildtrack_and_start();
         }
     }
@@ -141,6 +215,7 @@ public class Main {
     public class stopactionlistner implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e) {
+
             player.stop();
         }
     }
